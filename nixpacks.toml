@@ -1,0 +1,9 @@
+[phases.setup]
+nixPkgs = ['python311', 'swig', 'gcc', 'make', 'pkg-config', 'freetype', 'libjpeg', 'zlib']
+
+[phases.install]
+cmds = [
+  'pip install --upgrade pip setuptools wheel',
+  'pip install --only-binary :all: PyMuPDF || pip install PyMuPDF',
+  'pip install -r requirements.txt'
+]
