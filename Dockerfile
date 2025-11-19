@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
 # Install system dependencies for PyMuPDF and other packages
 RUN apt-get update && apt-get install -y \
@@ -29,7 +29,11 @@ RUN pip install --no-cache-dir torch==2.1.0
 # Install transformers
 RUN pip install --no-cache-dir transformers==4.35.0
 
-# Install paddleocr (will install PyMuPDF as dependency)
+# Install PyMuPDF first (paddleocr requires PyMuPDF<1.21.0)
+# Python 3.10 has pre-built wheels for PyMuPDF 1.20.2
+RUN pip install --no-cache-dir "PyMuPDF<1.21.0"
+
+# Install paddleocr (will use the PyMuPDF we just installed)
 RUN pip install --no-cache-dir paddleocr==2.7.0.3
 
 # Copy application code
