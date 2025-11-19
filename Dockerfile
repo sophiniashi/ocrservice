@@ -24,13 +24,13 @@ COPY requirements.txt .
 RUN pip install --upgrade pip setuptools wheel
 
 # Install base packages first
-RUN pip install --no-cache-dir flask==2.0.3 flask-cors==4.0.0 pillow==8.4.0 requests==2.31.0 gunicorn==21.2.0
+RUN pip install --no-cache-dir flask==2.0.3 flask-cors==4.0.0 pillow==8.4.0 requests==2.28.0 gunicorn==20.1.0
 
 # Install torch (large package, may take time)
-RUN pip install --no-cache-dir torch==2.1.0
+RUN pip install --no-cache-dir torch==1.10.2
 
 # Install transformers
-RUN pip install --no-cache-dir transformers==4.35.0
+RUN pip install --no-cache-dir transformers==4.21.0
 
 # Install PyMuPDF first (paddleocr requires PyMuPDF<1.21.0)
 # Try to use pre-built wheels first, fall back to building from source if needed
