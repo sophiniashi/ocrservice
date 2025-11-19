@@ -24,7 +24,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip setuptools wheel
 
 # Install base packages first
-RUN pip install --no-cache-dir flask==3.0.0 flask-cors==4.0.0 pillow==10.1.0 requests==2.31.0 gunicorn==21.2.0
+RUN pip install --no-cache-dir flask==2.3.3 flask-cors==4.0.0 pillow==10.1.0 requests==2.31.0 gunicorn==21.2.0
 
 # Install torch (large package, may take time)
 RUN pip install --no-cache-dir torch==2.1.0
