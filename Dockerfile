@@ -62,9 +62,11 @@ RUN apt-get purge -y \
 # Copy application code
 COPY app.py .
 
-# Expose port
-EXPOSE $PORT
+# Expose port (Railway will set PORT env var at runtime)
+# Using default port 5000 for documentation, actual port comes from $PORT env var
+EXPOSE 5000
 
 # Run gunicorn with fewer workers to reduce memory usage
+# Railway sets PORT environment variable, gunicorn will use it
 CMD gunicorn -w 2 -b 0.0.0.0:$PORT --timeout 120 app:app
 
