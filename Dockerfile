@@ -67,6 +67,9 @@ RUN find /usr/local/lib/python3.10 -name "*.pyc" -delete \
 # Using default port 5000 for documentation, actual port comes from $PORT env var
 EXPOSE 5000
 
-# Run start script which handles PORT variable
-CMD ["./start.sh"]
+# Use start.sh script to handle PORT variable expansion
+# Railway automatically sets PORT environment variable (usually 8080)
+# The script will expand ${PORT:-5000} to the actual port number
+# Using exec form with /bin/sh to ensure proper shell execution
+CMD ["/bin/sh", "-c", "PORT=${PORT:-5000} exec gunicorn -w 1 -b \"0.0.0.0:$PORT\" app:app --timeout 300 --graceful-timeout 120 --keep-alive 5"]
 
