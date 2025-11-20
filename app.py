@@ -21,14 +21,41 @@ CORS(app)  # Enable CORS for Flutter app
 # Initialize PaddleOCR with Thai language support
 # use_angle_cls=True helps with rotated text
 # lang='th' for Thai language
+# Initialize with error handling and reduce memory usage
 logger.info("Initializing PaddleOCR with Thai language support...")
-ocr = PaddleOCR(use_angle_cls=True, lang='th', use_gpu=False)
-logger.info("PaddleOCR initialized successfully!")
+try:
+    ocr = PaddleOCR(
+        use_angle_cls=True, 
+        lang='th', 
+        use_gpu=False,
+        show_log=False  # Reduce logging overhead
+    )
+    logger.info("PaddleOCR initialized successfully!")
+except Exception as e:
+    logger.error(f"Failed to initialize PaddleOCR: {str(e)}", exc_info=True)
+    raise
 
 @app.route('/health', methods=['GET'])
 def health():
     """Health check endpoint"""
-    return jsonify({'status': 'ok', 'service': 'Thai OCR Service'})
+    try:
+        # Test if PaddleOCR is initialized
+        if ocr is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'PaddleOCR not initialized'
+            }), 503
+        return jsonify({
+            'status': 'ok',
+            'service': 'Thai OCR Service',
+            'ocr_initialized': True
+        })
+    except Exception as e:
+        logger.error(f"Health check error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 503
 
 @app.route('/ocr', methods=['POST'])
 def process_ocr():
