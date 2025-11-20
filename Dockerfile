@@ -41,16 +41,13 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application code
 COPY main.py .
 
-# Clean up Python cache, temporary files, and documentation
+# Clean up Python cache and temporary files (keep *.dist-info for importlib.metadata)
 RUN find /usr/local/lib/python3.10 -name "*.pyc" -delete \
     && find /usr/local/lib/python3.10 -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true \
     && find /usr/local/lib/python3.10 -name "*.pyo" -delete \
     && find /usr/local/lib/python3.10 -type d -name "test" -exec rm -rf {} + 2>/dev/null || true \
     && find /usr/local/lib/python3.10 -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true \
-    && find /usr/local/lib/python3.10 -name "*.dist-info" -type d -exec rm -rf {} + 2>/dev/null || true \
-    && rm -rf /root/.cache/pip \
-    && rm -rf /tmp/* \
-    && rm -rf /var/tmp/*
+    && rm -rf /root/.cache/pip /tmp/* /var/tmp/*
 
 # Expose port
 EXPOSE 5000
