@@ -14,6 +14,13 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt && \
+    \
+    # Enforce numpy<2 to match cv2 / paddleocr binary builds
+    pip install --no-cache-dir --force-reinstall \"numpy<2\" && \
+    \
+    # Optional: make sure we have a headless OpenCV build compatible with numpy<2
+    pip install --no-cache-dir \"opencv-python-headless<4.9\" && \
+    \
     # Clean up pip cache
     rm -rf /root/.cache/pip
 
