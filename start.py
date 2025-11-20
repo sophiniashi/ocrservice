@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Start script for Railway deployment
-Reads PORT from environment and starts gunicorn
+Reads PORT from environment and starts gunicorn using config file
 """
 import os
 import sys
@@ -32,26 +32,20 @@ except ValueError as e:
     print(f"ERROR: PORT value repr: {repr(port_raw)}")
     sys.exit(1)
 
-# Build gunicorn command
-bind_address = f'0.0.0.0:{port_int}'
-print(f"DEBUG: Gunicorn bind address: {bind_address}")
-
+# Use gunicorn with config file
+# Config file will read PORT from environment again, but we've validated it here
 gunicorn_args = [
     'gunicorn',
-    '-w', '1',
-    '-b', bind_address,
-    'app:app',
-    '--timeout', '300',
-    '--graceful-timeout', '120',
-    '--keep-alive', '5'
+    '-c', 'gunicorn.conf.py',
+    'app:app'
 ]
 
 print(f"DEBUG: Gunicorn command: {' '.join(gunicorn_args)}")
 print("=" * 50)
-print(f"Starting gunicorn on port {port_int}")
+print(f"Starting gunicorn (PORT={port_int} will be read by config file)")
 print("=" * 50)
 
-# Start gunicorn with PORT from environment
+# Start gunicorn
 # Use execvp to replace Python process with gunicorn
 os.execvp('gunicorn', gunicorn_args)
 

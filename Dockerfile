@@ -67,7 +67,7 @@ RUN find /usr/local/lib/python3.10 -name "*.pyc" -delete \
 # Using default port 5000 for documentation, actual port comes from $PORT env var
 EXPOSE 5000
 
-# Use gunicorn with config file that reads PORT from environment
-# Config file handles PORT reading, no need to pass in command line
-CMD ["gunicorn", "-c", "gunicorn.conf.py", "app:app"]
+# Use Python script to validate PORT and start gunicorn
+# This ensures PORT is validated before gunicorn starts
+CMD ["python3", "start.py"]
 
