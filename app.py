@@ -18,37 +18,39 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)  # Enable CORS for Flutter app
 
-# Initialize PaddleOCR with Thai language support
+# Initialize PaddleOCR lazily to reduce memory usage at startup
 # use_angle_cls=True helps with rotated text
 # lang='th' for Thai language
-# Initialize with error handling and reduce memory usage
-logger.info("Initializing PaddleOCR with Thai language support...")
-try:
-    ocr = PaddleOCR(
-        use_angle_cls=True, 
-        lang='th', 
-        use_gpu=False,
-        show_log=False  # Reduce logging overhead
-    )
-    logger.info("PaddleOCR initialized successfully!")
-except Exception as e:
-    logger.error(f"Failed to initialize PaddleOCR: {str(e)}", exc_info=True)
-    raise
+# Use lazy initialization to prevent crash on startup
+ocr = None
+
+def get_ocr():
+    """Get or initialize PaddleOCR instance (lazy loading)"""
+    global ocr
+    if ocr is None:
+        logger.info("Initializing PaddleOCR with Thai language support...")
+        try:
+            ocr = PaddleOCR(
+                use_angle_cls=True, 
+                lang='th', 
+                use_gpu=False,
+                show_log=False  # Reduce logging overhead
+            )
+            logger.info("PaddleOCR initialized successfully!")
+        except Exception as e:
+            logger.error(f"Failed to initialize PaddleOCR: {str(e)}", exc_info=True)
+            raise
+    return ocr
 
 @app.route('/health', methods=['GET'])
 def health():
     """Health check endpoint"""
     try:
-        # Test if PaddleOCR is initialized
-        if ocr is None:
-            return jsonify({
-                'status': 'error',
-                'message': 'PaddleOCR not initialized'
-            }), 503
+        # Check if service is ready (don't initialize PaddleOCR here)
         return jsonify({
             'status': 'ok',
             'service': 'Thai OCR Service',
-            'ocr_initialized': True
+            'ocr_initialized': ocr is not None
         })
     except Exception as e:
         logger.error(f"Health check error: {str(e)}")
@@ -98,8 +100,11 @@ def process_ocr():
         
         logger.info(f"Processing OCR for image: {len(image_bytes)} bytes")
         
+        # Get OCR instance (lazy initialization)
+        ocr_instance = get_ocr()
+        
         # Run OCR
-        result = ocr.ocr(temp_path, cls=True)
+        result = ocr_instance.ocr(temp_path, cls=True)
         
         # Extract text from result
         # PaddleOCR returns: [[[bbox], (text, confidence)], ...]
