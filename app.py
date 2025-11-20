@@ -25,18 +25,24 @@ CORS(app)  # Enable CORS for Flutter app
 ocr = None
 
 def get_ocr():
-    """Get or initialize PaddleOCR instance (lazy loading)"""
+    """Get or initialize PaddleOCR instance (lazy loading) with PP-OCR Lite"""
     global ocr
     if ocr is None:
-        logger.info("Initializing PaddleOCR with Thai language support...")
+        logger.info("Initializing PaddleOCR PP-OCR Lite with Thai language support...")
         try:
+            # Use PP-OCR Lite model (much smaller, ~10MB vs ~100MB+)
+            # Lite model is optimized for size and speed
             ocr = PaddleOCR(
-                use_angle_cls=True, 
+                use_angle_cls=False,  # Disable angle classifier to reduce model size
                 lang='th', 
                 use_gpu=False,
-                show_log=False  # Reduce logging overhead
+                show_log=False,  # Reduce logging overhead
+                use_pdserving=False,  # Don't use serving mode
+                det_model_dir=None,  # Use default Lite detection model
+                rec_model_dir=None,  # Use default Lite recognition model
+                cls_model_dir=None   # No angle classifier (saves space)
             )
-            logger.info("PaddleOCR initialized successfully!")
+            logger.info("PaddleOCR PP-OCR Lite initialized successfully!")
         except Exception as e:
             logger.error(f"Failed to initialize PaddleOCR: {str(e)}", exc_info=True)
             raise
@@ -103,8 +109,8 @@ def process_ocr():
         # Get OCR instance (lazy initialization)
         ocr_instance = get_ocr()
         
-        # Run OCR
-        result = ocr_instance.ocr(temp_path, cls=True)
+        # Run OCR (cls=False since we disabled angle classifier)
+        result = ocr_instance.ocr(temp_path, cls=False)
         
         # Extract text from result
         # PaddleOCR returns: [[[bbox], (text, confidence)], ...]
