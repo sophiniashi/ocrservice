@@ -1,29 +1,13 @@
-# Thai OCR Service (PaddleOCR)
+# Thai OCR Service
 
-Backend service สำหรับอ่านข้อความภาษาไทยจากภาพสลิป โดยใช้ PaddleOCR
+OCR Service สำหรับอ่านสลิปโอนเงินภาษาไทย โดยใช้ PaddleOCR
 
-## การติดตั้ง
+## Features
 
-1. สร้าง virtual environment:
-```bash
-python3 -m venv venv
-source venv/bin/activate  # สำหรับ macOS/Linux
-# หรือ
-venv\Scripts\activate  # สำหรับ Windows
-```
-
-2. ติดตั้ง dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-## การรัน Service
-
-```bash
-python app.py
-```
-
-Service จะรันที่ `http://localhost:5000`
+- อ่านข้อความภาษาไทยจากภาพสลิปโอนเงิน
+- รองรับ PP-OCR Lite model (ขนาดเล็ก)
+- Lazy loading เพื่อลด memory usage
+- RESTful API ด้วย FastAPI
 
 ## API Endpoints
 
@@ -38,16 +22,7 @@ POST /ocr
 Content-Type: multipart/form-data
 
 Form data:
-- image: (file) รูปภาพที่ต้องการ OCR
-
-หรือ
-
-POST /ocr
-Content-Type: application/json
-
-{
-  "image_base64": "base64_encoded_image_string"
-}
+- file: (image file) รูปภาพสลิปที่ต้องการ OCR
 ```
 
 Response:
@@ -60,62 +35,32 @@ Response:
 }
 ```
 
-## การ Deploy
-
-### สำหรับ Production (แนะนำใช้ Gunicorn):
+## Local Development
 
 ```bash
-pip install gunicorn
-gunicorn -w 4 -b 0.0.0.0:5000 app:app
+# Install dependencies
+pip install -r requirements.txt
+
+# Run server
+uvicorn main:app --host 0.0.0.0 --port 5000
 ```
 
-### สำหรับ Docker:
+## Railway Deployment
 
-สร้าง `Dockerfile`:
-```dockerfile
-FROM python:3.9-slim
+Service จะ deploy อัตโนมัติเมื่อ push ไปยัง repository
 
-WORKDIR /app
+Railway จะ:
+- Build Docker image จาก Dockerfile
+- Set PORT environment variable อัตโนมัติ
+- Start service ด้วย uvicorn
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+## Example Usage
 
-COPY app.py .
-
-EXPOSE 5000
-
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
-```
-
-Build และ run:
 ```bash
-docker build -t thai-ocr-service .
-docker run -p 5000:5000 thai-ocr-service
+# Test health check
+curl http://localhost:5000/health
+
+# Test OCR
+curl -X POST http://localhost:5000/ocr \
+  -F "file=@slip.jpg"
 ```
-
-## การตั้งค่าใน Flutter App
-
-หลังจาก deploy service แล้ว ต้องตั้งค่า URL ใน Flutter app:
-
-1. เปิดแอป Flutter
-2. ไปที่ Settings (ถ้ามี) หรือแก้ไขใน code:
-   - ใช้ `SharedPreferences` เพื่อเก็บ OCR service URL
-   - Key: `ocr_service_url`
-   - Default: `http://localhost:5000` (สำหรับ development)
-   - Production: ตั้งเป็น URL ของ server ที่ deploy แล้ว (เช่น `https://your-ocr-service.com`)
-
-ตัวอย่างการตั้งค่าใน code:
-```dart
-final prefs = await SharedPreferences.getInstance();
-await prefs.setString('ocr_service_url', 'https://your-ocr-service.com');
-```
-
-## หมายเหตุ
-
-- PaddleOCR จะดาวน์โหลดโมเดลภาษาไทยอัตโนมัติครั้งแรกที่รัน (ประมาณ 10-20 MB)
-- สำหรับการใช้งานจริง ควร deploy บน cloud service เช่น Heroku, AWS, Google Cloud, หรือ Railway
-- ตั้งค่า CORS ให้รองรับ domain ของแอป Flutter
-- สำหรับ development บน Android Emulator: ใช้ `http://10.0.2.2:5000` แทน `localhost:5000`
-- สำหรับ development บน iOS Simulator: ใช้ `http://localhost:5000` ได้เลย
-- สำหรับ device จริง: ต้องใช้ IP address ของเครื่องที่รัน service (เช่น `http://192.168.1.100:5000`)
-

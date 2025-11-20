@@ -1,8 +1,0 @@
-[phases.setup]
-nixPkgs = ['swig', 'gcc', 'gnumake', 'pkg-config', 'freetype', 'libjpeg', 'zlib']
-
-[phases.install]
-cmds = [
-  'pip install --upgrade pip setuptools wheel',
-  'pip install -r requirements.txt'
-]
