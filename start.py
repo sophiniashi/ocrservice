@@ -32,20 +32,30 @@ except ValueError as e:
     print(f"ERROR: PORT value repr: {repr(port_raw)}")
     sys.exit(1)
 
-# Use gunicorn with config file
-# Config file will read PORT from environment again, but we've validated it here
+# Build bind address as string (not using $PORT variable)
+bind_address = f'0.0.0.0:{port_int}'
+print(f"DEBUG: Bind address: {repr(bind_address)}")
+
+# Use gunicorn with direct arguments (no config file to avoid Railway parsing issues)
+# Pass bind address directly as argument
 gunicorn_args = [
     'gunicorn',
-    '-c', 'gunicorn.conf.py',
-    'app:app'
+    '-w', '1',
+    '-b', bind_address,  # Pass as separate argument, not in string
+    'app:app',
+    '--timeout', '300',
+    '--graceful-timeout', '120',
+    '--keep-alive', '5'
 ]
 
 print(f"DEBUG: Gunicorn command: {' '.join(gunicorn_args)}")
+print(f"DEBUG: Gunicorn args list: {gunicorn_args}")
 print("=" * 50)
-print(f"Starting gunicorn (PORT={port_int} will be read by config file)")
+print(f"Starting gunicorn on port {port_int}")
 print("=" * 50)
 
 # Start gunicorn
 # Use execvp to replace Python process with gunicorn
+# This ensures no shell expansion happens
 os.execvp('gunicorn', gunicorn_args)
 
