@@ -34,16 +34,21 @@ def get_ocr():
     """Get or initialize PaddleOCR instance (lazy loading)"""
     global ocr
     if ocr is None:
-        logger.info("Initializing PaddleOCR with Thai language support...")
+        logger.info("Initializing PaddleOCR PP-OCR Lite with Thai language support...")
         try:
-            # Use PP-OCR Lite model for smaller size
+            # Use PP-OCR Lite model for smaller size (~10MB vs ~100MB+)
+            # Disable angle classifier and use minimal config to reduce size
             ocr = PaddleOCR(
                 lang='th',
-                use_angle_cls=False,  # Disable angle classifier to reduce size
+                use_angle_cls=False,  # Disable angle classifier to reduce model size
                 use_gpu=False,
-                show_log=False
+                show_log=False,
+                use_pdserving=False,
+                det_model_dir=None,  # Use default Lite detection model
+                rec_model_dir=None,  # Use default Lite recognition model
+                cls_model_dir=None   # No angle classifier (saves space)
             )
-            logger.info("PaddleOCR initialized successfully!")
+            logger.info("PaddleOCR PP-OCR Lite initialized successfully!")
         except Exception as e:
             logger.error(f"Failed to initialize PaddleOCR: {e}", exc_info=True)
             raise
