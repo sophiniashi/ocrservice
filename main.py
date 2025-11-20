@@ -25,9 +25,11 @@ ocr = None
 def get_ocr():
     global ocr
     if ocr is None:
-        logger.info("Initializing PaddleOCR...")
+        logger.info("Initializing PaddleOCR (latin multi-language, supports Thai)...")
         ocr = PaddleOCR(
-            lang='th',
+            # ใช้โมเดล 'latin' ที่รองรับตัวอักษรยุโรปและหลายภาษา รวมถึงไทย
+            # (เวอร์ชันที่ใช้อยู่ไม่มี key 'th' โดยตรง)
+            lang='latin',
             use_angle_cls=False,
             use_gpu=False,
             show_log=False,
