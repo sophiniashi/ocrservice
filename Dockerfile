@@ -54,10 +54,10 @@ COPY --from=builder /usr/local/lib/python3.10/site-packages/ /usr/local/lib/pyth
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 # Copy application code
-COPY app.py start.sh ./
+COPY app.py start.sh start.py ./
 
-# Make start script executable
-RUN chmod +x start.sh
+# Make start scripts executable
+RUN chmod +x start.sh start.py
 
 # Clean up Python cache
 RUN find /usr/local/lib/python3.10 -name "*.pyc" -delete \
@@ -67,9 +67,8 @@ RUN find /usr/local/lib/python3.10 -name "*.pyc" -delete \
 # Using default port 5000 for documentation, actual port comes from $PORT env var
 EXPOSE 5000
 
-# Use start.sh script to handle PORT variable expansion
+# Use Python script to read PORT from environment and start gunicorn
+# This ensures PORT is always read as a number, not a string
 # Railway automatically sets PORT environment variable (usually 8080)
-# The script will expand ${PORT:-5000} to the actual port number
-# Using exec form with /bin/sh to ensure proper shell execution
-CMD ["/bin/sh", "-c", "PORT=${PORT:-5000} exec gunicorn -w 1 -b \"0.0.0.0:$PORT\" app:app --timeout 300 --graceful-timeout 120 --keep-alive 5"]
+CMD ["python3", "start.py"]
 
