@@ -37,6 +37,8 @@ bind_address = f'0.0.0.0:{port_int}'
 print(f"DEBUG: Bind address: {repr(bind_address)}")
 
 # Use gunicorn with direct arguments (no config file to avoid Railway parsing issues)
+# Gunicorn auto-loads gunicorn.conf.py or gunicorn.py if present
+# We ensure no config file exists, so we pass all options directly
 # Pass bind address directly as argument
 gunicorn_args = [
     'gunicorn',
@@ -48,14 +50,40 @@ gunicorn_args = [
     '--keep-alive', '5'
 ]
 
+# Verify no config files exist in current directory
+import glob
+config_files = glob.glob('gunicorn*.py') + glob.glob('gunicorn*.conf')
+if config_files:
+    print(f"WARNING: Found config files: {config_files}")
+    print("WARNING: These will be ignored, using command line arguments only")
+
 print(f"DEBUG: Gunicorn command: {' '.join(gunicorn_args)}")
 print(f"DEBUG: Gunicorn args list: {gunicorn_args}")
 print("=" * 50)
 print(f"Starting gunicorn on port {port_int}")
 print("=" * 50)
 
+# Verify gunicorn is available
+import shutil
+gunicorn_path = shutil.which('gunicorn')
+if not gunicorn_path:
+    print("ERROR: gunicorn not found in PATH")
+    print(f"ERROR: PATH: {os.environ.get('PATH', 'not set')}")
+    sys.exit(1)
+print(f"DEBUG: Found gunicorn at: {gunicorn_path}")
+
+# Verify app.py exists
+if not os.path.exists('app.py'):
+    print("ERROR: app.py not found in current directory")
+    print(f"ERROR: Current directory: {os.getcwd()}")
+    print(f"ERROR: Files in directory: {os.listdir('.')}")
+    sys.exit(1)
+print("DEBUG: app.py found")
+
 # Start gunicorn
 # Use execvp to replace Python process with gunicorn
 # This ensures no shell expansion happens
+print("DEBUG: About to exec gunicorn...")
+print(f"DEBUG: Working directory: {os.getcwd()}")
 os.execvp('gunicorn', gunicorn_args)
 

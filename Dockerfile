@@ -59,9 +59,10 @@ COPY app.py start.sh start.py ./
 # Make start scripts executable
 RUN chmod +x start.sh start.py
 
-# Clean up Python cache
+# Clean up Python cache and ensure no config files exist
 RUN find /usr/local/lib/python3.10 -name "*.pyc" -delete \
-    && find /usr/local/lib/python3.10 -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+    && find /usr/local/lib/python3.10 -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true \
+    && rm -f gunicorn.conf.py gunicorn.py gunicorn_config.py 2>/dev/null || true
 
 # Expose port (Railway will set PORT env var at runtime)
 # Using default port 5000 for documentation, actual port comes from $PORT env var
