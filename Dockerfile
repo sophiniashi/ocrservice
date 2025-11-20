@@ -54,7 +54,7 @@ COPY --from=builder /usr/local/lib/python3.10/site-packages/ /usr/local/lib/pyth
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 # Copy application code
-COPY app.py start.sh start.py gunicorn.conf.py ./
+COPY app.py start.sh start.py ./
 
 # Make start scripts executable
 RUN chmod +x start.sh start.py
