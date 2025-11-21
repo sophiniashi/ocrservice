@@ -7,6 +7,7 @@ import io
 import os
 import logging
 import re
+import time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -113,6 +114,7 @@ def health():
 @app.post("/ocr")
 async def ocr_image(file: UploadFile = File(...)):
     try:
+        start_ts = time.time()
         ocr_instance = get_ocr()
 
         image_bytes = await file.read()
@@ -121,6 +123,11 @@ async def ocr_image(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="File must be an image")
 
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+        # ลดขนาดภาพเพื่อให้ OCR เร็วขึ้นและไม่กิน RAM เกินบน Railway
+        max_dim = 1600  # ปรับได้ตามต้องการ
+        if max(image.size) > max_dim:
+            image.thumbnail((max_dim, max_dim))
 
         temp_path = "/tmp/ocr_temp.jpg"
         image.save(temp_path, "JPEG")
@@ -136,6 +143,9 @@ async def ocr_image(file: UploadFile = File(...)):
                     lines.append(text)
 
         full_text = "\n".join(lines)
+
+        elapsed = time.time() - start_ts
+        logger.info(f"OCR processed in {elapsed:.2f}s, lines={len(lines)}")
 
         # ดึงข้อมูลเชิงโครงสร้างจากสลิป
         parsed = parse_slip_lines(lines)
